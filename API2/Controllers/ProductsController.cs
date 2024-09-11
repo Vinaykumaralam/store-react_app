@@ -6,9 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace API2.Controllers
 {
-    [ApiController]
-    [Route("/[controller]")]
-    public class ProductsController : Controller
+    public class ProductsController : BaseAPIController
     {
         private readonly StoreContext _storeContext;
         public ProductsController(StoreContext storeContext)
