@@ -22,7 +22,7 @@ namespace API2.Controllers
             return await _storeContext.Products.ToListAsync();
         }
         [HttpGet]
-        [Route("/[action]")]
+        [Route("/[action]/id/{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
             return await _storeContext.Products.FindAsync(id);
