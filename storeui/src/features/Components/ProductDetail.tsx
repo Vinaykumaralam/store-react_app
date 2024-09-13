@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Product } from "../../app/models/Product";
 import agent from "../../app/api/agent";
+import NotFoundPage from "../../app/error/NotFoundPage";
+import LoadingComponent from "../../app/layout/LoadingComponent";
 
 export default function ProductDetail(){
 
@@ -17,8 +19,8 @@ export default function ProductDetail(){
             .finally(()=>setLoading(false));
     },[id])
 
-    if(Loading) return <h2>Loading ...</h2>
-    if(!product) return <h2>Product not found</h2>
+    if(Loading) return <LoadingComponent message='Loading Product...'/>
+    if(!product) return <NotFoundPage/>
     return(
         
         <Grid2 container spacing={6}>
