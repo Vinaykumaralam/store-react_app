@@ -8,12 +8,14 @@ import {useState, useEffect } from "react";
 export default function Catalog(){
   const [products,setProducts]=useState<Product[]>([]);
   const [Loading,setLoading]=useState(true);
+
   useEffect(()=>{
     agent.Catalog.list()
     .then(products=>setProducts(products))
     .catch(error=>console.log(error))
     .finally(()=>setLoading(false));
   },[])
+  
     if(Loading) return <LoadingComponent message="Loading Products..."/>
     return(
     <>
