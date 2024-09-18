@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { router } from "../router/routes";
 
 axios.defaults.baseURL="http://localhost:5000/";
+axios.defaults.withCredentials=true;
 const sleep=()=>new Promise(resolve=>setTimeout(resolve,500));
 axios.interceptors.response.use(async response=>{
     await sleep();
@@ -57,8 +58,13 @@ const TestErrors={
     getValidationError:()=>requests.get('Exception/validation-error')
 }
 
+const Basket={
+    getBasket:()=>requests.get('/Basket'),
+    AddItemstoCart:(productId:number,quantity=1)=>requests.post(`Basket?productId=${productId}&quantity=${quantity}`,{}),
+    RemoveItemFromCart:(productId:number,quantity=1)=>requests.delete(`Basket?productId=${productId}&quantity=${quantity}`)
+}
 const agent={
-    Catalog,TestErrors
+    Catalog,TestErrors,Basket
 }
 
 export default agent;
