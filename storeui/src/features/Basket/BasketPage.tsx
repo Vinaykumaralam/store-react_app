@@ -1,29 +1,33 @@
-import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
+import { Box, Button, Grid2, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
 import { Add, Delete, Remove } from "@mui/icons-material";
 import { useStoreContext } from "../../app/Context/StoreContext";
-import { useState } from "react";
+import {  useState } from "react";
 import agent from "../../app/api/agent";
 import { LoadingButton } from "@mui/lab";
+import BasketSummary from "./BasketSummary";
+import { Link } from "react-router-dom";
 
 export default function BasketPage(){
-
     const {basket,setBasket,removeItem}=useStoreContext();
-    const [loading,setLoading]=useState(false);
+    const [status,setStatus]=useState({
+      loading:false,
+      name:''
+    });
 
-    function handleAddItem(productId:number){
-      setLoading(true);
+    function handleAddItem(productId:number,name:string){
+      setStatus({loading:true,name});
       agent.Basket.AddItemstoCart(productId)
             .then(basket=>setBasket(basket))
             .catch(e=>console.log(e))
-            .finally(()=>setLoading(false));
+            .finally(()=>setStatus({loading:false,name:''}));
     }
 
-    function handleRemoveItem(productId:number,quantity=1){
-      setLoading(true);
+    function handleRemoveItem(productId:number,quantity=1,name:string){
+      setStatus({loading:true,name});
       agent.Basket.RemoveItemFromCart(productId,quantity)
             .then(()=>removeItem(productId,quantity))
             .catch(e=>console.log(e))
-            .finally(()=>setLoading(false));
+            .finally(()=>setStatus({loading:false,name:''}));
     }
 
     if(!basket) return <Typography variant="h3">Basket feels light</Typography>
@@ -54,17 +58,20 @@ export default function BasketPage(){
             </TableCell>
         <TableCell align="right">${(item.price / 100).toFixed(2)}</TableCell>
         <TableCell align="center">
-          <LoadingButton loading={loading} color="secondary" onClick={()=>handleAddItem(item.id)}>
+          <LoadingButton loading={status.loading && status.name==="add"+item.id} color="secondary" 
+                         onClick={()=>handleAddItem(item.id,"add"+item.id)}>
             <Add/>
           </LoadingButton>
           {item.quantity}
-          <LoadingButton loading={loading} color='secondary' onClick={()=>handleRemoveItem(item.id)}>
+          <LoadingButton loading={status.loading && status.name==="rem"+item.id}
+                       color='secondary' onClick={()=>handleRemoveItem(item.id,1,"rem"+item.id)}>
             <Remove/>
           </LoadingButton>
         </TableCell>
         <TableCell align="right">${((item.price /100)* item.quantity).toFixed(2)}</TableCell>
         <TableCell align="right">
-          <LoadingButton loading={loading} onClick={()=>handleRemoveItem(item.id,item.quantity)} color="error">
+          <LoadingButton loading={status.loading && status.name==="del"+item.id}
+                         onClick={()=>handleRemoveItem(item.id,item.quantity,"del"+item.id)} color="error">
             <Delete />
           </LoadingButton>
         </TableCell>
@@ -74,6 +81,14 @@ export default function BasketPage(){
 
       </Table>
     </TableContainer>
+
+    <Grid2 container>
+      <Grid2 size={{xs:6}}/>
+          <Grid2 size={{xs:6}}>
+              <BasketSummary />
+              <Button component={Link} to={'/checkout'} variant="contained" size='large' fullWidth>Checkout</Button>
+          </Grid2>
+    </Grid2>
         </>
     )
 }

@@ -8,6 +8,7 @@ import Catalog from "../../features/Components/Catalog";
 import ServerError from "../error/ServerError";
 import NotFoundPage from "../error/NotFoundPage";
 import BasketPage from "../../features/Basket/BasketPage";
+import CheckoutPage from "../../features/checkout/CheckoutPage";
 
 export const router =createBrowserRouter([
     {
@@ -22,6 +23,7 @@ export const router =createBrowserRouter([
             {path:'server-error',element:<ServerError/>},
             {path:'/not-found',element:<NotFoundPage/>},
             {path:'/basket',element:<BasketPage/>},
+            {path:'/checkout',element:<CheckoutPage/>},
             {path:'*',element:<Navigate replace to='/not-found'/>}
         ]
     }

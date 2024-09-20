@@ -1,23 +1,51 @@
-import { Divider, Grid2, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from "@mui/material";
+import { Divider, Grid2, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Product } from "../../app/models/Product";
 import agent from "../../app/api/agent";
 import NotFoundPage from "../../app/error/NotFoundPage";
 import LoadingComponent from "../../app/layout/LoadingComponent";
+import { useStoreContext } from "../../app/Context/StoreContext";
+import { LoadingButton } from "@mui/lab";
 
 export default function ProductDetail(){
-
+    const {basket,setBasket,removeItem}=useStoreContext();
     const {id}=useParams<{id:string}>();
     const[product,setProduct]=useState<Product | null>();
     const[Loading,setLoading]=useState(true);
+    const [quantity,setQuantity]=useState(0);
+    const [submitting,setSubmitting]=useState(false);
+    const item=basket?.basketItems.find(i=>i.id===product?.id);
+
+    function handleInputChange(event:any){
+        if(event.target.value>=0){
+        setQuantity(parseInt(event.target.value));
+    }}
+    function handleUpdateChange(productId:number){
+        setSubmitting(true);
+        if(!item || quantity>item.quantity){
+            const updatedQuantity=item ? quantity-item.quantity:quantity;
+            agent.Basket.AddItemstoCart(productId,updatedQuantity)
+                        .then(basket=>setBasket(basket))
+                        .catch(e=>console.log(e))
+                        .finally(()=>setSubmitting(false));
+        }else{
+            const updatedQuantity=item.quantity-quantity;
+            agent.Basket.RemoveItemFromCart(product?.id!,updatedQuantity)
+                        .then(()=>removeItem(product?.id!,updatedQuantity))
+                        .catch(e=>console.log(e))  
+                        .finally(()=>setSubmitting(false));
+        }
+        
+    }
 
     useEffect(()=>{
+        if(item) setQuantity(item.quantity);
         id && agent.Catalog.details(parseInt(id))
             .then(response=>setProduct(response))
             .catch(error=>console.log(error))
             .finally(()=>setLoading(false));
-    },[id])
+    },[id,item])
 
     if(Loading) return <LoadingComponent message='Loading Product...'/>
     if(!product) return <NotFoundPage/>
@@ -61,6 +89,16 @@ export default function ProductDetail(){
 
                         </Table>
                     </TableContainer>
+                    <Grid2 container spacing={2}>
+                        <Grid2 size={{xs:6}}>
+                            <TextField variant='outlined' type='number' label="Quantity in cart" fullWidth onChange={handleInputChange} value={quantity}/>
+                        </Grid2>
+                        <Grid2 size={{xs:6}}>
+                            <LoadingButton disabled={item?.quantity===quantity ||( !item&&quantity===0)} sx={{height:'55px'}} size="large" onClick={()=>handleUpdateChange(product.id)} color="primary" variant="contained" fullWidth>
+                                {item ? "Update Cart":"Add to Cart"}
+                            </LoadingButton>
+                        </Grid2>
+                    </Grid2>
             </Grid2>
 
         </Grid2>
