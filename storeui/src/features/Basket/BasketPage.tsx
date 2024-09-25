@@ -1,14 +1,16 @@
 import { Box, Button, Grid2, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
 import { Add, Delete, Remove } from "@mui/icons-material";
-import { useStoreContext } from "../../app/Context/StoreContext";
 import {  useState } from "react";
 import agent from "../../app/api/agent";
 import { LoadingButton } from "@mui/lab";
 import BasketSummary from "./BasketSummary";
 import { Link } from "react-router-dom";
+import { UseAppDispatch, UseAppSelector } from "../../app/store/configureStore";
+import { removeItem, setBasket } from "./BasketSlicer";
 
 export default function BasketPage(){
-    const {basket,setBasket,removeItem}=useStoreContext();
+    const {basket}=UseAppSelector(state=>state.basket);
+    const dispatch=UseAppDispatch();
     const [status,setStatus]=useState({
       loading:false,
       name:''
@@ -17,7 +19,7 @@ export default function BasketPage(){
     function handleAddItem(productId:number,name:string){
       setStatus({loading:true,name});
       agent.Basket.AddItemstoCart(productId)
-            .then(basket=>setBasket(basket))
+            .then(basket=>dispatch(setBasket(basket)))
             .catch(e=>console.log(e))
             .finally(()=>setStatus({loading:false,name:''}));
     }
@@ -25,12 +27,12 @@ export default function BasketPage(){
     function handleRemoveItem(productId:number,quantity=1,name:string){
       setStatus({loading:true,name});
       agent.Basket.RemoveItemFromCart(productId,quantity)
-            .then(()=>removeItem(productId,quantity))
+            .then(()=>dispatch(removeItem({productId,quantity})))
             .catch(e=>console.log(e))
             .finally(()=>setStatus({loading:false,name:''}));
     }
 
-    if(!basket) return <Typography variant="h3">Basket feels light</Typography>
+    if(!basket) return <Typography variant="h3">Your Basket is empty</Typography>
     return (
         <>
         <TableContainer component={Paper}>

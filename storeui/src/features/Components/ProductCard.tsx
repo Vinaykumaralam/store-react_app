@@ -4,30 +4,30 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import agent from "../../app/api/agent";
 import { LoadingButton } from "@mui/lab";
-import { useStoreContext } from "../../app/Context/StoreContext";
 import { currencyFormat } from "../../app/utils/util";
+import { UseAppDispatch } from "../../app/store/configureStore";
+import { setBasket } from "../Basket/BasketSlicer";
 
-interface Props{
+interface Props{ 
     product:Product;
 }
 export default function ProductCard({product}:Props){
-  const {setBasket}=useStoreContext();
+  const dispatch=UseAppDispatch();
   const [loading,setLoading]=useState(false);
 
   function handleAddItem(productId:number){
       setLoading(true);
       agent.Basket.AddItemstoCart(productId)
-        .then(basket=>setBasket(basket))
+        .then(basket=>dispatch(setBasket(basket)))
         .catch(error=>console.log(error))
         .finally(()=>setLoading(false));
   }
     return (
-        <>
+        <> 
         <Card>
             <CardHeader 
             avatar={
-                <Avatar sx={{backgroundColor:'secondary.main'}}>{product.name.charAt(0).toUpperCase()}</Avatar>
-                
+                <Avatar sx={{backgroundColor:'secondary.main'}}>{product.name.charAt(0).toUpperCase()}</Avatar> 
             }
             title={product.name}
             titleTypographyProps={{

@@ -2,6 +2,7 @@ import { ShoppingCart } from "@mui/icons-material";
 import { AppBar, Badge, Box, IconButton, List, ListItem, Switch, Toolbar, Typography } from "@mui/material";
 import { Link, NavLink } from "react-router-dom";
 import { useStoreContext } from "../Context/StoreContext";
+import { UseAppSelector } from "../store/configureStore";
 
 interface Props{
     DarkMode:boolean;
@@ -9,7 +10,7 @@ interface Props{
 }
 export default function Header({DarkMode,handlleThemeChange}:Props){
 
-    const{basket}=useStoreContext();
+    const{basket}=UseAppSelector(state=>state.basket);
     const itemCount=basket?.basketItems.reduce((sum,item)=>(sum+item.quantity),0);
 
     const midLinks=[

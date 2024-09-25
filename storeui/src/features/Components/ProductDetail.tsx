@@ -5,11 +5,13 @@ import { Product } from "../../app/models/Product";
 import agent from "../../app/api/agent";
 import NotFoundPage from "../../app/error/NotFoundPage";
 import LoadingComponent from "../../app/layout/LoadingComponent";
-import { useStoreContext } from "../../app/Context/StoreContext";
 import { LoadingButton } from "@mui/lab";
+import { UseAppDispatch, UseAppSelector } from "../../app/store/configureStore";
+import { removeItem, setBasket } from "../Basket/BasketSlicer";
 
 export default function ProductDetail(){
-    const {basket,setBasket,removeItem}=useStoreContext();
+    const {basket}=UseAppSelector(state=>state.basket);
+    const dispatch=UseAppDispatch();
     const {id}=useParams<{id:string}>();
     const[product,setProduct]=useState<Product | null>();
     const[Loading,setLoading]=useState(true);
@@ -26,13 +28,13 @@ export default function ProductDetail(){
         if(!item || quantity>item.quantity){
             const updatedQuantity=item ? quantity-item.quantity:quantity;
             agent.Basket.AddItemstoCart(productId,updatedQuantity)
-                        .then(basket=>setBasket(basket))
+                        .then(basket=>dispatch(setBasket(basket)))
                         .catch(e=>console.log(e))
                         .finally(()=>setSubmitting(false));
         }else{
             const updatedQuantity=item.quantity-quantity;
             agent.Basket.RemoveItemFromCart(product?.id!,updatedQuantity)
-                        .then(()=>removeItem(product?.id!,updatedQuantity))
+                        .then(()=>dispatch(removeItem({productId:product?.id!,quantity:updatedQuantity})))
                         .catch(e=>console.log(e))  
                         .finally(()=>setSubmitting(false));
         }
