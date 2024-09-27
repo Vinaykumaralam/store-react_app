@@ -1,22 +1,20 @@
 import { Divider, Grid2, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Product } from "../../app/models/Product";
-import agent from "../../app/api/agent";
 import NotFoundPage from "../../app/error/NotFoundPage";
 import LoadingComponent from "../../app/layout/LoadingComponent";
 import { LoadingButton } from "@mui/lab";
 import { UseAppDispatch, UseAppSelector } from "../../app/store/configureStore";
-import { removeItem, setBasket } from "../Basket/BasketSlicer";
+import { addBasketItemAsync, removeBasketItemAsync } from "../Basket/BasketSlicer";
+import { fetchProductAsync, productSelectors } from "./CatalogSlicer";
 
 export default function ProductDetail(){
-    const {basket}=UseAppSelector(state=>state.basket);
+    const {basket,status}=UseAppSelector(state=>state.basket);
+    const {status:productStatus}=UseAppSelector(state=>state.catalog);
     const dispatch=UseAppDispatch();
     const {id}=useParams<{id:string}>();
-    const[product,setProduct]=useState<Product | null>();
-    const[Loading,setLoading]=useState(true);
+    const product=UseAppSelector(state=>productSelectors.selectById(state,Number(id)));
     const [quantity,setQuantity]=useState(0);
-    const [submitting,setSubmitting]=useState(false);
     const item=basket?.basketItems.find(i=>i.id===product?.id);
 
     function handleInputChange(event:any){
@@ -24,32 +22,22 @@ export default function ProductDetail(){
         setQuantity(parseInt(event.target.value));
     }}
     function handleUpdateChange(productId:number){
-        setSubmitting(true);
         if(!item || quantity>item.quantity){
             const updatedQuantity=item ? quantity-item.quantity:quantity;
-            agent.Basket.AddItemstoCart(productId,updatedQuantity)
-                        .then(basket=>dispatch(setBasket(basket)))
-                        .catch(e=>console.log(e))
-                        .finally(()=>setSubmitting(false));
+            dispatch(addBasketItemAsync({productId:product?.id!,quantity:updatedQuantity}))
         }else{
             const updatedQuantity=item.quantity-quantity;
-            agent.Basket.RemoveItemFromCart(product?.id!,updatedQuantity)
-                        .then(()=>dispatch(removeItem({productId:product?.id!,quantity:updatedQuantity})))
-                        .catch(e=>console.log(e))  
-                        .finally(()=>setSubmitting(false));
+            dispatch(removeBasketItemAsync({productId:product?.id!,quantity:updatedQuantity}))
         }
         
     }
 
     useEffect(()=>{
         if(item) setQuantity(item.quantity);
-        id && agent.Catalog.details(parseInt(id))
-            .then(response=>setProduct(response))
-            .catch(error=>console.log(error))
-            .finally(()=>setLoading(false));
-    },[id,item])
+        if(!product&&id) dispatch(fetchProductAsync(parseInt(id)));
+    },[id,item,dispatch,product])
 
-    if(Loading) return <LoadingComponent message='Loading Product...'/>
+    if(productStatus.includes('pending')) return <LoadingComponent message='Loading Product...'/>
     if(!product) return <NotFoundPage/>
     return(
         
@@ -96,7 +84,7 @@ export default function ProductDetail(){
                             <TextField variant='outlined' type='number' label="Quantity in cart" fullWidth onChange={handleInputChange} value={quantity}/>
                         </Grid2>
                         <Grid2 size={{xs:6}}>
-                            <LoadingButton disabled={item?.quantity===quantity ||( !item&&quantity===0)} sx={{height:'55px'}} size="large" onClick={()=>handleUpdateChange(product.id)} color="primary" variant="contained" fullWidth>
+                            <LoadingButton loading={status.includes('pending'+item?.id)} disabled={item?.quantity===quantity ||( !item&&quantity===0)} sx={{height:'55px'}} size="large" onClick={()=>handleUpdateChange(product.id)} color="primary" variant="contained" fullWidth>
                                 {item ? "Update Cart":"Add to Cart"}
                             </LoadingButton>
                         </Grid2>

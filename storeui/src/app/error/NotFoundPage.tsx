@@ -1,5 +1,4 @@
-import { Image } from "@mui/icons-material";
-import { Button, Container, Divider, Paper, Typography } from "@mui/material";
+import { Button, Container, Paper, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 
 export default function NotFoundPage(){
