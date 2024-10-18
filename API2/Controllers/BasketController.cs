@@ -21,8 +21,6 @@ namespace API2.Controllers
             return MapBasketDTO(basket);
         }
 
-        
-
         [HttpPost(Name = "AddItemtoBasket")]
         public async Task<ActionResult> AddItemtoBasket(int productId,int quantity)
         {
@@ -58,7 +56,6 @@ namespace API2.Controllers
             if (result) return Ok();
             return BadRequest(new ProblemDetails { Title = "Error occured while saving data." });
         }
-
         private async Task<Basket> RetriveBasket()
         {
             return await _context.Baskets

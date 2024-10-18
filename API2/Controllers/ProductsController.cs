@@ -2,7 +2,8 @@
 using API2.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.CompilerServices;
+using API2.Extensions;
+using API2.RequestHelpers;
 
 namespace API2.Controllers
 {
@@ -15,9 +16,14 @@ namespace API2.Controllers
         }
         [HttpGet]
         [Route("/[action]")]
-        public async Task<ActionResult<List<Product>>> GetProducts()
+        public async Task<ActionResult<PagedList<Product>>> GetProducts([FromQuery]ProductParams productParams)
         {
-            return await _storeContext.Products.ToListAsync();
+            var query=_storeContext.Products.Sort(productParams.OrderBy).Search(productParams.SearchTerm)
+                                    .Filters(productParams.Brands, productParams.Type)
+                                    .AsQueryable();
+            var products = await PagedList<Product>.ToPagedList(query, productParams.PageNumber, productParams.PageSize);
+            Response.AddPaginationHeader(products.MetaData);
+            return products;
         }
         [HttpGet]
         [Route("/[action]/id/{id}")]
@@ -26,6 +32,15 @@ namespace API2.Controllers
             var product = await _storeContext.Products.FindAsync(id);
             if (product == null) return NotFound();
             return product;
+        }
+
+        [HttpGet("filters")]
+        public async Task<IActionResult> GetFilters()
+        {
+            var brands=await _storeContext.Products.Select(b=>b.Brand).Distinct().ToListAsync();
+            var types = await _storeContext.Products.Select(b => b.PictureType).Distinct().ToListAsync();
+
+            return Ok(new {brands,types});
         }
     }
 }

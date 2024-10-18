@@ -40,14 +40,15 @@ axios.interceptors.response.use(async response=>{
 
 const ResponseBody=(response:AxiosResponse)=>response.data;
 const requests={
-    get:(url:string)=>axios.get(url).then(ResponseBody),
+    get:(url:string,params?:URLSearchParams)=>axios.get(url,{params}).then(ResponseBody),
     post:(url:string,body:{})=>axios.post(url,body).then(ResponseBody),
     put:(url:string,body:{})=>axios.put(url,body).then(ResponseBody),
     delete:(url:string)=>axios.delete(url).then(ResponseBody),
 }
 const Catalog={
-    list:()=>requests.get('GetProducts'),
-    details:(id:number)=>requests.get(`GetProduct/id/${id}`)
+    list:(params:URLSearchParams)=>requests.get('GetProducts',params),
+    details:(id:number)=>requests.get(`GetProduct/id/${id}`),
+    getFilters:()=>requests.get('Products/filters')
 }
 
 const TestErrors={
